@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, Req, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, Req, Query, BadRequestException, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -8,31 +8,32 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto) {
     if (!createUserDto.id || !createUserDto.password) {
       return { error: 'Missing id or password' };
     }
-    const uuid = this.usersService.create(createUserDto);
+    const uuid = await this.usersService.create(createUserDto);
+    console.log(uuid);
     return {
-      uuid: uuid
+      uuid
     };
   }
 
   @Get(':uuid')
-  findOne(@Param('uuid') uuid: string) {
-    const user = this.usersService.findOne(uuid);
-    return user ? user : { error: 'User not found' };
+  async findOne(@Param('uuid') uuid: string) {
+    const user = await this.usersService.findOne(uuid);
+    return user;
   }
 
   @Patch(':uuid')
   @HttpCode(204)
-  update(@Param('uuid') uuid: string, @Body() updateUserDto: UpdateUserDto) {
-    this.usersService.update(uuid, updateUserDto);
+  async update(@Param('uuid') uuid: string, @Body() updateUserDto: UpdateUserDto) {
+    await this.usersService.update(uuid, updateUserDto);
   }
 
   @Delete(':uuid')
   @HttpCode(204)
-  remove(@Param('uuid') uuid: string, @Query('password') password: string) {
-    this.usersService.remove(uuid, password);
+  async remove(@Param('uuid') uuid: string, @Query('password') password: string) {
+    await this.usersService.remove(uuid, password);
   }
 }
