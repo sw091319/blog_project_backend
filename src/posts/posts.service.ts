@@ -1,28 +1,25 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { title } from 'process';
+import { UpdateUserDto } from 'src/users/dto/update-user.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class PostsService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private userService: UsersService,
+  ) {}
 
-  async checkUser(uuid: string, password: string) {
-    const user = await this.prisma.users.findUnique({
-      where: { uuid },
-    });
-    if (!user || user.deletedAt) {
-      throw new UnauthorizedException('Invalid userid or password');
-    }
-    if (user.password !== password) {
-      throw new UnauthorizedException('Invalid userid or password');
-    }
-  }
-  
-  constructor(private readonly prisma: PrismaService) {};
-
-  async create(uuid: string, password : string ,createPostDto: CreatePostDto) {
-    this.checkUser(uuid, password);
+  async create(uuid: string, password: string, createPostDto: CreatePostDto) {
+    await this.userService.getUser(uuid, password);
     const result = await this.prisma.posts.create({
       data: {
         title: createPostDto.title,
@@ -37,71 +34,71 @@ export class PostsService {
   async findOne(postId: string) {
     const post = await this.prisma.posts.findUnique({
       where: { id: postId },
+      include: {
+        author: true,
+      },
     });
     if (!post || post.deletedAt) {
-      throw new UnauthorizedException('Post not found');
+      throw new NotFoundException('Post not found');
     }
 
-    const user = await this.prisma.users.findUnique({
-      where: { uuid: post.userId },
-    });
-    if (!user || user.deletedAt) {
-      throw new UnauthorizedException('User not found');
-    }
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
     return {
       title: post.title,
       contents: post.content,
-      author : {
-        uuid : post.userId,
-        id : user.id,
-      }
-    }
-
+      author: {
+        uuid: post.userId,
+        id: post.author.id,
+      },
+    };
   }
 
   async findAll() {
     const posts = await this.prisma.posts.findMany({
       where: { deletedAt: null },
       orderBy: { createdAt: 'desc' },
+      include: {
+        author: true,
+      },
     });
     return {
-      posts: posts.map((post) => {
-        return {
-          uuid :post.userId,
-          title: post.title,
-          contents: post.content,
-        };
-      }),
+      posts: posts.map((post) => ({
+        uuid: post.userId,
+        id: post.author.id,
+        title: post.title,
+        contents: post.content,
+      })),
     };
   }
 
-  async put(postId : string, uuid: string, password: string, createPostDto: CreatePostDto) {
-    this.checkUser(uuid, password);
+  async update(
+    postId: string,
+    uuid: string,
+    password: string,
+    updatePostDto: UpdatePostDto,
+  ) {
+    await this.userService.getUser(uuid, password);
     const post = await this.prisma.posts.findUnique({
       where: { id: postId },
     });
     if (!post || post.deletedAt) {
-      throw new UnauthorizedException('Post not found');
+      throw new NotFoundException('Post not found');
     }
     await this.prisma.posts.update({
       where: { id: postId },
       data: {
-        title: createPostDto.title,
-        content: createPostDto.contents,
+        title: updatePostDto.title,
+        content: updatePostDto.contents,
       },
     });
   }
 
-  async remove(postId : string, uuid: string, password: string) {
-    this.checkUser(uuid, password);
+  async remove(postId: string, uuid: string, password: string) {
+    await this.userService.getUser(uuid, password);
     const post = await this.prisma.posts.findUnique({
       where: { id: postId },
     });
     if (!post) {
-      throw new UnauthorizedException('Post not found');
+      throw new NotFoundException('Post not found');
     }
     if (post.deletedAt) {
       throw new ConflictException('Post already deleted');
