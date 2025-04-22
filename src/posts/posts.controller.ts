@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, HttpCode } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -8,27 +8,46 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  create(@Body() createPostDto: CreatePostDto) {
-    return this.postsService.create(createPostDto);
+  async create(
+    @Body('uuid') uuid : string, 
+    @Body('password') password : string, 
+    @Body() createPostDto: CreatePostDto) {
+      const postId = await this.postsService.create(uuid, password, createPostDto);
+      return { postId };
   }
 
   @Get()
-  findAll() {
-    return this.postsService.findAll();
+  async findAll() {
+    const posts = await this.postsService.findAll();
+    return {
+      posts
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postsService.findOne(+id);
+  @Get(':postId')
+  async findOne(@Param('postId') postId: string) {
+    const post = await this.postsService.findOne(postId);
+    return {
+      post
+    }
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postsService.update(+id, updatePostDto);
+  @Put(':postId')
+  @HttpCode(204)
+  async put(
+    @Param('postId') postId: string,
+    @Body('uuid') uuid: string,
+    @Body('password') password: string,
+    @Body() createPostDto: CreatePostDto) {
+    await this.postsService.put(postId, uuid, password, createPostDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postsService.remove(+id);
+  @Delete(':postId')
+  @HttpCode(204)
+  async remove(
+    @Param('postId') postId: string,
+    @Body('uuid') uuid : string, 
+    @Body('password') password : string) {
+    await this.postsService.remove(postId, uuid, password);
   }
 }

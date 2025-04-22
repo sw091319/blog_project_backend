@@ -31,6 +31,7 @@ model Posts {
   userId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
   comments Comments[]
   author Users @relation(fields: [userId], references: [uuid])
 }
@@ -42,6 +43,7 @@ model Comments {
   userId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
   author Users @relation(fields: [userId], references: [uuid])
   post Posts @relation(fields: [postId], references: [id])
 }

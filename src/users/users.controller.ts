@@ -13,7 +13,6 @@ export class UsersController {
       return { error: 'Missing id or password' };
     }
     const uuid = await this.usersService.create(createUserDto);
-    console.log(uuid);
     return {
       uuid
     };
