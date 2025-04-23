@@ -9,5 +9,6 @@ import { UsersModule } from 'src/users/users.module';
   controllers: [CommentsController],
   providers: [CommentsService],
   imports: [PrismaModule, UsersModule],
+  exports: [CommentsService],
 })
 export class CommentsModule {}

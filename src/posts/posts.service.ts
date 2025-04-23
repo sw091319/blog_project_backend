@@ -70,6 +70,20 @@ export class PostsService {
     };
   }
 
+  async findUserPostList(uuid: string) {
+    const postList = await this.prisma.posts.findMany({
+      where: { userId: uuid, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+    return {
+      myPosts: postList.map((post) => ({
+        postId: post.id,
+        title: post.title,
+        createdAt: post.createdAt,
+      })),
+    };
+  }
+
   async update(
     postId: string,
     uuid: string,
