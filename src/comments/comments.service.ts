@@ -7,6 +7,8 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/users.service';
+import { stringify } from 'querystring';
+import { create } from 'domain';
 
 @Injectable()
 export class CommentsService {
@@ -49,6 +51,27 @@ export class CommentsService {
     };
   }
 
+  async findUserCommentList(uuid: string) {
+    const CommentList = await this.prisma.comments.findMany({
+      where: { userId: uuid, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      include: { post: true },
+    });
+
+    return {
+      myCommnts: CommentList.map((comment) => {
+        return {
+          post: {
+            postId: comment.post.id,
+            title: comment.post.title,
+          },
+          commentId: comment.id,
+          contents: comment.contents,
+          createdAt: comment.createdAt,
+        };
+      }),
+    };
+  }
   async update(
     commentId: string,
     uuid: string,

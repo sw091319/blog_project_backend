@@ -54,12 +54,13 @@ export class CommentsController {
     );
   }
 
-  @Delete(':id')
+  @Delete(':commentId')
+  @HttpCode(204)
   async remove(
     @Param('commentId') commentId: string,
     @Query('uuid') uuid: string,
     @Query('password') password: string,
   ) {
-    return this.commentsService.remove(commentId, uuid, password);
+    await this.commentsService.remove(commentId, uuid, password);
   }
 }
