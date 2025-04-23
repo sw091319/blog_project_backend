@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -7,10 +9,18 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { PostsService } from 'src/posts/posts.service';
+import { CommentsService } from 'src/comments/comments.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => PostsService))
+    private postsService: PostsService,
+    @Inject(forwardRef(() => CommentsService))
+    private commentsService: CommentsService,
+  ) {}
 
   async getUser(uuid: string, password: string) {
     const user = await this.prisma.users.findUnique({
@@ -35,14 +45,17 @@ export class UsersService {
     return result.uuid;
   }
 
-  async findOne(uuid: string) {
-    const user = await this.prisma.users.findUnique({
-      where: { uuid },
-    });
-    if (!user || user.deletedAt) {
-      throw new UnauthorizedException('User not found');
-    }
-    return { uuid: user.uuid, id: user.id };
+  async showUser(uuid: string, password: string) {
+    const user = await this.getUser(uuid, password);
+    const userPosts = await this.postsService.findUserPostList(uuid);
+    const userComments = await this.commentsService.findUserCommentList(uuid);
+
+    return {
+      uuid: uuid,
+      id: user.id,
+      userPosts: userPosts,
+      userComments: userComments,
+    };
   }
 
   async update(uuid: string, updateUserDto: UpdateUserDto) {

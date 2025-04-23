@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -7,14 +9,13 @@ import {
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { title } from 'process';
-import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class PostsService {
   constructor(
     private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => UsersService))
     private userService: UsersService,
   ) {}
 

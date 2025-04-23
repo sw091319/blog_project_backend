@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,13 +9,12 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/users.service';
-import { stringify } from 'querystring';
-import { create } from 'domain';
 
 @Injectable()
 export class CommentsService {
   constructor(
     private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => UsersService))
     private userService: UsersService,
   ) {}
 
@@ -59,7 +60,7 @@ export class CommentsService {
     });
 
     return {
-      myCommnts: CommentList.map((comment) => {
+      myComments: CommentList.map((comment) => {
         return {
           post: {
             postId: comment.post.id,
