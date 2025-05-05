@@ -34,17 +34,13 @@ export class PostsController {
   @Get()
   async findAll() {
     const posts = await this.postsService.findAll();
-    return {
-      posts,
-    };
+    return posts;
   }
 
   @Get(':postId')
   async findOne(@Param('postId') postId: string) {
     const post = await this.postsService.findOne(postId);
-    return {
-      post,
-    };
+    return post;
   }
 
   @Put(':postId')

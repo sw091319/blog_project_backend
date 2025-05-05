@@ -31,6 +31,19 @@ export class UsersController {
     };
   }
 
+  @Get('login')
+  async login(@Query('id') id: string, @Query('password') password: string) {
+    console.log(id, password);
+    if (!id || !password) {
+      throw new BadRequestException('Missing id or password');
+    }
+    const user = await this.usersService.login(id, password);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
   @Get(':uuid')
   async showUser(
     @Param('uuid') uuid: string,

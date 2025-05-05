@@ -76,13 +76,11 @@ export class PostsService {
       where: { userId: uuid, deletedAt: null },
       orderBy: { createdAt: 'desc' },
     });
-    return {
-      myPosts: postList.map((post) => ({
-        postId: post.id,
-        title: post.title,
-        createdAt: post.createdAt,
-      })),
-    };
+    return postList.map((post) => ({
+      postId: post.id,
+      title: post.title,
+      createdAt: post.createdAt,
+    }));
   }
 
   async update(

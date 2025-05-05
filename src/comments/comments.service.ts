@@ -59,19 +59,17 @@ export class CommentsService {
       include: { post: true },
     });
 
-    return {
-      myComments: CommentList.map((comment) => {
-        return {
-          post: {
-            postId: comment.post.id,
-            title: comment.post.title,
-          },
-          commentId: comment.id,
-          contents: comment.contents,
-          createdAt: comment.createdAt,
-        };
-      }),
-    };
+    return CommentList.map((comment) => {
+      return {
+        post: {
+          postId: comment.post.id,
+          title: comment.post.title,
+        },
+        commentId: comment.id,
+        contents: comment.contents,
+        createdAt: comment.createdAt,
+      };
+    });
   }
   async update(
     commentId: string,

@@ -53,9 +53,22 @@ export class UsersService {
     return {
       uuid: uuid,
       id: user.id,
-      userPosts: userPosts,
-      userComments: userComments,
+      myPosts: userPosts,
+      myComments: userComments,
     };
+  }
+
+  async login(id: string, password: string) {
+    const user = await this.prisma.users.findUnique({
+      where: { id },
+    });
+    if (!user || user.deletedAt) {
+      throw new UnauthorizedException('Invalid userid or password');
+    }
+    if (user.password !== password) {
+      throw new UnauthorizedException('Invalid userid or password');
+    }
+    return user;
   }
 
   async update(uuid: string, updateUserDto: UpdateUserDto) {
