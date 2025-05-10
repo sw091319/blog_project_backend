@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -7,14 +9,13 @@ import {
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { title } from 'process';
-import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class PostsService {
   constructor(
     private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => UsersService))
     private userService: UsersService,
   ) {}
 
@@ -68,6 +69,18 @@ export class PostsService {
         contents: post.content,
       })),
     };
+  }
+
+  async findUserPostList(uuid: string) {
+    const postList = await this.prisma.posts.findMany({
+      where: { userId: uuid, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+    return postList.map((post) => ({
+      postId: post.id,
+      title: post.title,
+      createdAt: post.createdAt,
+    }));
   }
 
   async update(
